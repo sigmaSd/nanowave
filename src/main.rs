@@ -9,7 +9,7 @@ fn main() {
 
     //ureq
     let mut client = ureq::agent();
-    client.set("User-Agent", "");
+    client.set("User-Agent", "nanowave(https://github.com/sigmaSd/nanowave)");
 
     // Main window
     let w = Window::new(WindowType::Toplevel);
