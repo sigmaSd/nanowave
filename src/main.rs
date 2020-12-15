@@ -27,25 +27,9 @@ fn main() {
     let g = Grid::new();
     let sw: ScrolledWindow = ScrolledWindow::new::<Adjustment, Adjustment>(None, None);
 
-    // Playing winow
-    let hb = Box::new(Orientation::Horizontal, 10);
-    let label = Label::new(Some("Playing station!"));
-    let ret = Button::with_label("Return");
-    hb.pack_start(&label, false, false, 10);
-    hb.pack_start(&Label::new(None), true, true, 10);
-    hb.pack_start(&ret, false, false, 10);
-
     // Signals
     {
-        shadow_clone!(hb, g, h);
-        ret.connect_clicked(move |_| {
-            hb.hide();
-            g.show();
-            h.show();
-        });
-    }
-    {
-        shadow_clone!(hb, g, h);
+        shadow_clone!(g);
         e.connect_activate(move |entry| {
             //clear
             g.foreach(|c| g.remove(c));
@@ -72,12 +56,7 @@ fn main() {
             for s in stations.into_iter() {
                 let btn = Button::with_label(&s.name);
                 g.attach(&btn, pos.0, pos.1, 1, 1);
-                shadow_clone!(h, g, hb);
                 btn.connect_clicked(move |_| {
-                    h.hide();
-                    g.hide();
-                    hb.show_all();
-
                     std::process::Command::new("pkill")
                         .arg("mpv")
                         .spawn()
@@ -104,16 +83,13 @@ fn main() {
     // bind
     h.add(&l);
     h.add(&e);
-    v.add(&hb);
     v.add(&h);
     v.add(&g);
     sw.add(&v);
     w.add(&sw);
 
     // show main winow
-    // hide playing window
     w.show_all();
-    hb.hide();
 
     //exit
     w.connect_delete_event(move |_, _| {
