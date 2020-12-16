@@ -72,16 +72,18 @@ fn main() {
             }
 
             let mut stations = vec![];
-            connection
-                .iterate(query, |cols| {
-                    let mut cols = cols.iter();
-                    let name = cols.next().unwrap().1.unwrap().to_string();
-                    let country = cols.next().unwrap().1.unwrap().to_string();
-                    let url = cols.next().unwrap().1.unwrap().to_string();
-                    stations.push(Station { name, country, url });
-                    true
-                })
-                .unwrap();
+            let mut limit = 100;
+            let _ = connection.iterate(query, |cols| {
+                let mut cols = cols.iter();
+                let name = cols.next().unwrap().1.unwrap().to_string();
+                let country = cols.next().unwrap().1.unwrap().to_string();
+                let url = cols.next().unwrap().1.unwrap().to_string();
+                stations.push(Station { name, country, url });
+
+                limit -= 1;
+
+                limit != 0
+            });
 
             let width = 5;
             let mut pos = (0, 0);
