@@ -8,6 +8,7 @@ Search by name or/and country using `s:` and `c:` with ',' as seperator
 
 Example: `c:pakistan,s:news`
 
+Requires `sqlite3` `mpv`
 
 
 # Credits
