@@ -5,7 +5,8 @@ Search/Listen to Internet radio
 
 # Usage
 Search by name or/and country using `s:` and `c:` with ',' as seperator
-example: `c:pakistan,s:news`
+
+Example: `c:pakistan,s:news`
 
 
 
