@@ -1,18 +1,11 @@
 #![allow(clippy::many_single_char_names)]
+use gtk::prelude::*;
 use gtk::*;
-use gtk::prelude::ComboBoxExtManual;
-
 use serde::Deserialize;
 use std::io::Write;
 
 macro_rules! shadow_clone {
     ($($i:ident),+) => ($(let $i = $i.clone();)+)
-}
-
-#[derive(Debug)]
-enum Tag {
-    Country(String),
-    Name(String),
 }
 
 fn main() {
@@ -41,39 +34,23 @@ fn main() {
 
     // Signals
     {
-        shadow_clone!(g,search_tag);
+        shadow_clone!(g, search_tag);
         e.connect_activate(move |entry| {
             //clear
             g.foreach(|c| g.remove(c));
-            let text = entry.get_text().to_string();
+            let text = entry.text().to_string();
             let text = text.trim();
 
-            let v: Vec<_> = text
-                .split(',')
-                .map(|s| {
-                    let tag = search_tag.get_active_text().unwrap().to_string();
-                    match tag.as_str() {
-                        "country" => Tag::Country(s.to_string()),
-                        "name" => Tag::Name(s.to_string()),
-                        _ => unreachable!(),
-                    }
-                })
-                .collect();
-
             let mut query = "SELECT * from mytable ".to_string();
-            for (i, tag) in v.into_iter().enumerate() {
-                match i {
-                    0 => query.push_str("WHERE "),
-                    _ => query.push_str("AND "),
+            query.push_str("WHERE ");
+            match search_tag.active_text().unwrap().to_string().as_str() {
+                "name" => {
+                    query.push_str(&format!("Name LIKE \"%{}%\"", text));
                 }
-                match tag {
-                    Tag::Name(name) => {
-                        query.push_str(&format!("Name LIKE \"%{}%\"", name));
-                    }
-                    Tag::Country(country) => {
-                        query.push_str(&format!("Country LIKE \"%{}%\"", country));
-                    }
+                "country" => {
+                    query.push_str(&format!("Country LIKE \"%{}%\"", text));
                 }
+                _ => unreachable!(),
             }
 
             let mut stations = vec![];
@@ -149,15 +126,14 @@ fn main() {
 fn create_db(path: &std::path::Path) -> sqlite::Connection {
     println!("Updating database..");
 
-    let mut client = ureq::agent();
-    client.set(
-        "User-Agent",
-        "nanowave(https://github.com/sigmaSd/nanowave)",
-    );
+    let client = ureq::AgentBuilder::new()
+        .user_agent("nanowave(https://github.com/sigmaSd/nanowave)")
+        .build();
     let s: Vec<Station> = client
         .get("http://91.132.145.114/json/stations")
         .call()
-        .into_json_deserialize()
+        .unwrap()
+        .into_json()
         .unwrap();
 
     let _ = std::fs::create_dir_all(&path);
