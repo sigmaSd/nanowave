@@ -1,5 +1,7 @@
 #![allow(clippy::many_single_char_names)]
 use gtk::*;
+use gtk::prelude::ComboBoxExtManual;
+
 use serde::Deserialize;
 use std::io::Write;
 
@@ -25,16 +27,21 @@ fn main() {
 
     // Main window
     let w = Window::new(WindowType::Toplevel);
+    w.maximize();
     let v = Box::new(Orientation::Vertical, 10);
     let h = Box::new(Orientation::Horizontal, 10);
     let l = Label::new(Some("Search: "));
     let e = Entry::new();
     let g = Grid::new();
+    let search_tag = ComboBoxText::new();
+    search_tag.append(None, "country");
+    search_tag.append(None, "name");
+    search_tag.set_active(Some(0));
     let sw: ScrolledWindow = ScrolledWindow::new::<Adjustment, Adjustment>(None, None);
 
     // Signals
     {
-        shadow_clone!(g);
+        shadow_clone!(g,search_tag);
         e.connect_activate(move |entry| {
             //clear
             g.foreach(|c| g.remove(c));
@@ -44,12 +51,10 @@ fn main() {
             let v: Vec<_> = text
                 .split(',')
                 .map(|s| {
-                    let mut s = s.split(':');
-                    let tag = s.next().unwrap();
-                    let val = s.next().unwrap();
-                    match tag {
-                        "c" => Tag::Country(val.to_string()),
-                        "s" => Tag::Name(val.to_string()),
+                    let tag = search_tag.get_active_text().unwrap().to_string();
+                    match tag.as_str() {
+                        "country" => Tag::Country(s.to_string()),
+                        "name" => Tag::Name(s.to_string()),
                         _ => unreachable!(),
                     }
                 })
@@ -118,6 +123,7 @@ fn main() {
     // bind
     h.add(&l);
     h.add(&e);
+    h.add(&search_tag);
     v.add(&h);
     v.add(&g);
     sw.add(&v);
